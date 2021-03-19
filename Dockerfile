@@ -59,7 +59,14 @@ COPY . /AFLplusplus
 WORKDIR /AFLplusplus
 
 RUN export CC=gcc-10 && export CXX=g++-10 && make clean && \
-    make distrib && make install && make clean
+    make distrib && make install # && make clean
+
+RUN mkdir /root/aflpaths && cp afl-qemu-trace /usr/local/lib/afl && cp -r /usr/local/lib/afl/ /root/aflpaths/x86_64
+
+RUN ln -s /usr/include/asm-generic /usr/include/asm # fix i386 libqasan build
+RUN rm libcompcov.so libqasan.so unsigaction.so; (cd qemu_mode; CPU_TARGET=i386 ./build_qemu_support.sh) && make install && cp afl-qemu-trace /usr/local/lib/afl && cp -r /usr/local/lib/afl/ /root/aflpaths/i386
+RUN rm libcompcov.so libqasan.so unsigaction.so; (cd qemu_mode; CPU_TARGET=arm ./build_qemu_support.sh) && make install && cp afl-qemu-trace /usr/local/lib/afl && cp -r /usr/local/lib/afl/ /root/aflpaths/arm
+RUN rm libcompcov.so libqasan.so unsigaction.so; (cd qemu_mode; CPU_TARGET=aarch64 ./build_qemu_support.sh) && make install && cp afl-qemu-trace /usr/local/lib/afl && cp -r /usr/local/lib/afl/ /root/aflpaths/aarch64
 
 RUN echo 'alias joe="jupp --wordwrap"' >> ~/.bashrc
 RUN echo 'export PS1="[afl++]$PS1"' >> ~/.bashrc
